@@ -18,6 +18,12 @@ class block_teachinghow2s extends block_base {
 			return '';
 		}
 
+		// Disable the block if required settings haven't been provided
+		if (! get_config('block_teachinghow2s', 'security_key') ||
+			! get_config('block_teachinghow2s', 'organisation_id')) {
+			return '';
+		}
+
 		$this->content = new stdClass;
 
 		$content = html_writer::start_tag('form', array(
@@ -31,13 +37,11 @@ class block_teachinghow2s extends block_base {
 			'src'   => $CFG->wwwroot . '/blocks/teachinghow2s/images/how2.png'
 		));
 
-		foreach ($this->get_launch_params() as $key => $value) {
-			$content .= html_writer::empty_tag('input', array(
-				'type'  => 'hidden',
-				'name'  => $key,
-				'value' => $value
-			));
-		}
+		$content .= html_writer::empty_tag('input', array(
+			'type'  => 'hidden',
+			'name'  => 'params',
+			'value' => json_encode($this->get_launch_params())
+		));
 
 		$content .= html_writer::end_tag('form');
 
@@ -57,13 +61,16 @@ class block_teachinghow2s extends block_base {
 		$params = array();
 
 		$params['user'] = $USER->id;
-		$params['organisation'] = 'sampleApiKey';
-		$params['signature'] = $this->build_signature($params);
+		$params['organisation'] = get_config('block_teachinghow2s', 'organisation_id');
+		$params['signature'] = $this->build_signature(
+			$params,
+			get_config('block_teachinghow2s', 'Security_Key')
+		);
 
 		return $params;
 	}
 
-	private function build_signature($params) {
+	private function build_signature($params, $key) {
 
 		ksort($params);
 
@@ -75,10 +82,6 @@ class block_teachinghow2s extends block_base {
 
 		$data = strtolower($data);
 
-		// This will be retrieved from the HOW2 app and inserted by
-		// admins when the HOW2 block is installed.
-		$secretKey = 'youllneverguess';
-
-		return hash_hmac("sha256", $data, $secretKey);
+		return hash_hmac("sha256", $data, $key);
 	}
 }
