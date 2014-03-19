@@ -40,7 +40,7 @@ class block_teachinghow2s extends block_base {
 		$content .= html_writer::empty_tag('input', array(
 			'type'  => 'hidden',
 			'name'  => 'params',
-			'value' => json_encode($this->get_launch_params())
+			'value' => base64_encode(json_encode($this->get_launch_params()))
 		));
 
 		$content .= html_writer::end_tag('form');
@@ -56,21 +56,22 @@ class block_teachinghow2s extends block_base {
 
 	private function get_launch_params() {
 
-	    global $USER;
+	    global $USER, $CFG;
 
 		$params = array();
 
-		$params['user'] = $USER->id;
-		$params['organisation'] = get_config('block_teachinghow2s', 'organisation_id');
-		$params['signature'] = $this->build_signature(
+		$params['muid'] = get_host_from_url($CFG->wwwroot) . ':' . $USER->id;
+		$params['oid']  = get_config('block_teachinghow2s', 'organisation_id');
+		$params['murl'] = $CFG->wwwroot;
+		$params['s']    = $this->build_signature(
 			$params,
-			get_config('block_teachinghow2s', 'Security_Key')
+			get_config('block_teachinghow2s', 'security_key')
 		);
 
 		return $params;
 	}
 
-	private function build_signature($params, $key) {
+	private function build_signature($params, $securityKey) {
 
 		ksort($params);
 
@@ -82,6 +83,6 @@ class block_teachinghow2s extends block_base {
 
 		$data = strtolower($data);
 
-		return hash_hmac("sha256", $data, $key);
+		return hash_hmac("sha256", $data, $securityKey);
 	}
 }
