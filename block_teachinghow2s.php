@@ -28,7 +28,7 @@ class block_teachinghow2s extends block_base {
 
 		$content = html_writer::start_tag('form', array(
 			'method' => 'post',
-			'action' => 'https://app.teachinghow2s.local/moodle/launch'
+			'action' => 'https://app.teachinghow2s.com/moodle/launch'
 		));
 
 		$content .= html_writer::empty_tag('input', array(
